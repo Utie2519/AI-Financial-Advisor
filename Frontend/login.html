@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div class="container authBox">
+
+    <h2>Login</h2>
+
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <!-- 👇 NEW REGISTER LINK -->
+    <p style="margin-top:15px; text-align:center;">
+        Not a user?
+        <a href="register.html" style="color:#38bdf8; text-decoration:none;">
+            Create a new account
+        </a>
+    </p>
+
+</div>
+
+<script src="js/api.js"></script>
+
+<script>
+async function login() {
+    const res = await apiCall("/login", "POST", {
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+    });
+
+    if (res.token) {
+        localStorage.setItem("token", res.token);
+        alert("Login Successful");
+        window.location.href = "dashboard.html";
+    } else {
+        alert(res.message);
+    }
+}
+</script>
+
+</body>
+</html>

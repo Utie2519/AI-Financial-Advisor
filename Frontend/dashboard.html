@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finance Dashboard</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+        }
+
+        /* ===== BUTTON GRID ===== */
+        .btnGrid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 650px;
+            margin: 20px auto;
+        }
+
+        .tile {
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s ease;
+            color: white;
+            text-align: left;
+        }
+
+        .tile p {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        .incomeBtn { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .expenseBtn { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .statsBtn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .aiBtn { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+        .pdfBtn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .tile:hover {
+            transform: scale(1.04);
+        }
+
+        /* ===== BOX ===== */
+        .box {
+            background: rgba(255,255,255,0.08);
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 12px;
+        }
+
+        /* ===== MINI FORM (FIXED SMALL INPUTS) ===== */
+        .formMini {
+            max-width: 300px;
+            margin-top: 10px;
+        }
+
+        .formMini input {
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+        }
+        
+
+        .smallBtn {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* ===== CHARTS ===== */
+        .chartRow {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .chartBox {
+            background: rgba(255,255,255,0.08);
+            padding: 15px;
+            border-radius: 12px;
+            width: 48%;
+            min-width: 300px;
+        }
+
+        /* ===== TABLE ===== */
+        table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            border-bottom: 1px solid gray;
+        }
+
+        /* ===== AI ===== */
+        #aiBox {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(168,85,247,0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <button class="logoutBtn" onclick="logout()">
+        🚪 Logout
+    </button>
+</div>
+
+<h1>💰 Finance Dashboard</h1>
+
+<!-- BUTTON GRID -->
+<div class="btnGrid">
+
+    <button class="tile incomeBtn" onclick="showIncome()">
+        ➕ Add Income
+        <p>Track earnings</p>
+    </button>
+
+    <button class="tile expenseBtn" onclick="showExpense()">
+        ➖ Add Expense
+        <p>Track spending</p>
+    </button>
+
+    <button class="tile statsBtn" onclick="showStats()">
+        📊 View Stats
+        <p>Analytics dashboard</p>
+    </button>
+
+    <button class="tile aiBtn" onclick="showAI()">
+    🤖 AI Advisor
+    <p>Ask financial questions</p>
+</button>
+
+</div>
+
+<!-- INCOME -->
+<div id="incomeBox" class="box" style="display:none;">
+    <h2>➕ Add Income</h2>
+    <div class="formMini">
+        <input id="incomeSource" placeholder="Source">
+        <input id="incomeAmount" type="number" placeholder="Amount">
+        <button class="smallBtn incomeBtn" onclick="addIncome()">Submit</button>
+    </div>
+</div>
+
+<!-- EXPENSE -->
+<div id="expenseBox" class="box" style="display:none;">
+    <h2>➖ Add Expense</h2>
+    <div class="formMini">
+        <input id="expenseCategory" placeholder="Category">
+        <input id="expenseAmount" type="number" placeholder="Amount">
+        <button class="smallBtn expenseBtn" onclick="addExpense()">Submit</button>
+    </div>
+</div>
+
+<!-- STATS -->
+<div id="statsBox" class="box" style="display:none;">
+
+    <h2>📊 Analytics</h2>
+
+    <h3>💰 Savings: ₹<span id="savings">0</span></h3>
+    <h3>📈 Savings Rate: <span id="savingsRate">0%</span></h3>
+
+    <div class="chartRow">
+        <div class="chartBox">
+            <h3>Income vs Expense</h3>
+            <canvas id="chart"></canvas>
+        </div>
+
+        <div class="chartBox">
+            <h3>Category Breakdown</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+    </div>
+
+    <h3>📜 Transactions</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+    </table>
+
+    <button class="pdfBtn tile" onclick="downloadReport()">
+        📄 Download Report
+    </button>
+
+    
+
+</div>
+
+
+
+
+<!-- AI BOX -->
+<div id="aiBox"
+     class="box"
+     style="
+        display:none;
+        max-width:700px;
+        margin:30px auto;
+     ">
+
+    <h2>🤖 AI Financial Advisor</h2>
+
+   <input
+    type="text"
+    id="aiPrompt"
+    placeholder="Ask anything... Example: How can I save more money?"
+    style="
+        width:95%;
+        padding:12px;
+        margin:15px auto;
+        display:block;
+        border:none;
+        border-radius:8px;
+        font-size:16px;
+    ">
+
+  <button
+    class="smallBtn aiBtn"
+    style="
+        width:220px;
+        display:block;
+        margin:20px auto;
+    "
+    onclick="getAIAdvice()">
+
+    Ask AI
+
+</button>
+
+<div
+    id="aiAnswer"
+    style="
+        margin:20px auto;
+        background:#1e293b;
+        padding:15px;
+        border-radius:10px;
+        display:none;
+        width:95%;
+    ">
+
+    <h3>AI Response</h3>
+
+    <p id="aiText"></p>
+
+</div>
+
+</div>
+
+<script src="/js/api.js"></script>
+
+<script>
+
+function showIncome() {
+
+    incomeBox.style.display = "block";
+    expenseBox.style.display = "none";
+    statsBox.style.display = "none";
+    aiBox.style.display = "none";
+
+}
+
+function showExpense() {
+
+    incomeBox.style.display = "none";
+    expenseBox.style.display = "block";
+    statsBox.style.display = "none";
+    aiBox.style.display = "none";
+
+}
+
+function showStats() {
+
+    incomeBox.style.display = "none";
+    expenseBox.style.display = "none";
+    aiBox.style.display = "none";
+    statsBox.style.display = "block";
+
+    loadGraph();
+
+    document.getElementById("statsBox").scrollIntoView({
+        behavior: "smooth"
+    });
+
+}
+
+function showAI() {
+
+    // Hide other sections
+    incomeBox.style.display = "none";
+    expenseBox.style.display = "none";
+    statsBox.style.display = "none";
+
+    // Show AI section
+    aiBox.style.display = "block";
+
+    // Scroll to AI section
+    document.getElementById("aiBox").scrollIntoView({
+        behavior: "smooth"
+    });
+}
+
+
+// INCOME
+async function addIncome() {
+    await apiCall("/income", "POST", {
+        source: incomeSource.value,
+        amount: incomeAmount.value
+    });
+    alert("Income Added");
+}
+
+// EXPENSE
+async function addExpense() {
+    await apiCall("/expense", "POST", {
+        category: expenseCategory.value,
+        amount: expenseAmount.value
+    });
+    alert("Expense Added");
+}
+
+// GRAPH
+async function loadGraph() {
+
+    const income = await apiCall("/income");
+    const expense = await apiCall("/expense");
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    const table = document.getElementById("historyTable");
+    table.innerHTML = "";
+
+    income.forEach(i => {
+        totalIncome += Number(i.amount);
+        table.innerHTML += `<tr><td>Income</td><td>${i.source}</td><td>₹${i.amount}</td></tr>`;
+    });
+
+    expense.forEach(e => {
+        totalExpense += Number(e.amount);
+        table.innerHTML += `<tr><td>Expense</td><td>${e.category}</td><td>₹${e.amount}</td></tr>`;
+    });
+
+    const savings = totalIncome - totalExpense;
+    const savingsRate = totalIncome ? ((savings / totalIncome) * 100).toFixed(2) : 0;
+
+    document.getElementById("savings").innerText = savings;
+    document.getElementById("savingsRate").innerText = savingsRate + "%";
+
+    new Chart(document.getElementById("chart"), {
+        type: "bar",
+        data: {
+            labels: ["Income", "Expense"],
+            datasets: [{
+                data: [totalIncome, totalExpense],
+                backgroundColor: ["#22c55e", "#ef4444"]
+            }]
+        }
+    });
+
+    const map = {};
+    expense.forEach(e => {
+        map[e.category] = (map[e.category] || 0) + Number(e.amount);
+    });
+
+    new Chart(document.getElementById("pieChart"), {
+        type: "pie",
+        data: {
+            labels: Object.keys(map),
+            datasets: [{ data: Object.values(map) }]
+        }
+    });
+}
+async function getAIAdvice() {
+
+    const question = document.getElementById("aiPrompt").value.trim();
+
+    if (question === "") {
+        alert("Please enter your question.");
+        return;
+    }
+
+    const res = await apiCall("/ai/advice", "POST", {
+        message: question
+    });
+
+    if (!res) return;
+
+    document.getElementById("aiAnswer").style.display = "block";
+
+    document.getElementById("aiText").innerHTML =
+        res.reply.replace(/\n/g, "<br>");
+
+}
+
+// PDF
+async function downloadReport() {
+
+    const token = localStorage.getItem("token");
+
+    try {
+
+        const response = await fetch("http://localhost:3000/report/monthly", {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            alert("Unable to download report.");
+            return;
+        }
+
+        const blob = await response.blob();
+
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = "Monthly_Report.pdf";
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Download failed.");
+
+    }
+}
+</script>
+
+</body>
+</html>
